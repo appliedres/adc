@@ -42,6 +42,8 @@ type UsersConfigs struct {
 	FilterByDn string `json:"filter_by_dn"`
 	// LDAP filter to get user groups membership.
 	FilterGroupsByDn string `json:"filter_groups_by_dn"`
+	// Filter by person
+	FilterByPerson string `json:"filter_by_person"`
 }
 
 type GroupsConfigs struct {
@@ -57,6 +59,8 @@ type GroupsConfigs struct {
 	FilterByDn string `json:"filter_by_dn"`
 	// LDAP filter to get group members.
 	FilterMembersByDn string `json:"filter_members_by_dn"`
+	// Filter by group
+	FilterByGroup string `json:"filter_by_group"`
 }
 
 // Appends attributes to params in client config file.
@@ -77,6 +81,7 @@ func getDefaultConfig() *Config {
 			Attributes:       []string{"sAMAccountName", "givenName", "sn", "mail"},
 			FilterById:       "(&(objectClass=person)(sAMAccountName=%v))",
 			FilterByDn:       "(&(objectClass=person)(distinguishedName=%v))",
+			FilterByPerson:   "(&(objectClass=person))",
 			FilterGroupsByDn: "(&(objectClass=group)(member=%v))",
 		},
 		Groups: &GroupsConfigs{
@@ -84,6 +89,7 @@ func getDefaultConfig() *Config {
 			Attributes:        []string{"sAMAccountName", "cn", "description"},
 			FilterById:        "(&(objectClass=group)(sAMAccountName=%v))",
 			FilterByDn:        "(&(objectClass=group)(distinguishedName=%v))",
+			FilterByGroup:     "(&(objectClass=group))",
 			FilterMembersByDn: "(&(objectCategory=person)(memberOf=%v))",
 		},
 	}
@@ -119,6 +125,9 @@ func populateConfig(cfg *Config) *Config {
 		if cfg.Users.FilterByDn != "" {
 			result.Users.FilterByDn = cfg.Users.FilterByDn
 		}
+		if cfg.Users.FilterByPerson != "" {
+			result.Users.FilterByPerson = cfg.Users.FilterByPerson
+		}
 		if cfg.Users.FilterGroupsByDn != "" {
 			result.Users.FilterGroupsByDn = cfg.Users.FilterGroupsByDn
 		}
@@ -137,6 +146,9 @@ func populateConfig(cfg *Config) *Config {
 		}
 		if cfg.Groups.FilterByDn != "" {
 			result.Groups.FilterByDn = cfg.Groups.FilterByDn
+		}
+		if cfg.Groups.FilterByGroup != "" {
+			result.Groups.FilterByGroup = cfg.Groups.FilterByGroup
 		}
 		if cfg.Groups.FilterMembersByDn != "" {
 			result.Groups.FilterMembersByDn = cfg.Groups.FilterMembersByDn

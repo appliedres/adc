@@ -110,6 +110,45 @@ func (cl *Client) GetGroup(args GetGroupArgs) (*Group, error) {
 	return result, nil
 }
 
+func (cl *Client) ListGroups(args GetGroupArgs, filter string) (*[]Group, error) {
+	req := &ldap.SearchRequest{
+		BaseDN:       cl.Config.Groups.SearchBase,
+		Scope:        ldap.ScopeWholeSubtree,
+		DerefAliases: ldap.NeverDerefAliases,
+		TimeLimit:    int(cl.Config.Timeout.Seconds()),
+		Filter:       cl.Config.Groups.FilterByGroup,
+		Attributes:   cl.Config.Groups.Attributes,
+	}
+	if args.Attributes != nil {
+		req.Attributes = args.Attributes
+	}
+	if len(filter) > 0 {
+		req.Filter = filter
+	}
+
+	entries, err := cl.searchEntries(req)
+	if err != nil {
+		return nil, err
+	}
+	if entries == nil {
+		return nil, nil
+	}
+
+	var results []Group
+	for _, entry := range entries {
+		result := &Group{
+			DN:         entry.DN,
+			Id:         entry.GetAttributeValue(cl.Config.Users.IdAttribute),
+			Attributes: make(map[string]interface{}, len(entry.Attributes)),
+		}
+		for _, a := range entry.Attributes {
+			result.Attributes[a.Name] = entry.GetAttributeValue(a.Name)
+		}
+		results = append(results, *result)
+	}
+	return &results, nil
+}
+
 func (cl *Client) CreateGroup(dn string, groupAttrs []ldap.Attribute) error {
 	addReq := ldap.NewAddRequest(dn, []ldap.Control{})
 	addReq.Attributes = groupAttrs
