@@ -71,6 +71,10 @@ func (cl *Client) connect() (ldap.Client, error) {
 	return ldap.DialURL(cl.Config.URL, dialOpts...)
 }
 
+func (cl *Client) ConnectedStatus() bool {
+	return cl.ldap != nil
+}
+
 // Closes connection to AD.
 func (cl *Client) Disconnect() error {
 	if cl.ldap == nil {
