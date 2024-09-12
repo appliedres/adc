@@ -129,9 +129,7 @@ func Test_Client_GetUser(t *testing.T) {
 	t.Run("ChPwd", func(t *testing.T) {
 		args := GetUserArgs{Id: "user1", SkipGroupsSearch: true}
 		user, _ := cl.GetUser(args)
-		a, b, err := cl.SetPassword(user.DN, "", "ZXCVqwwer!@#$1234")
-		require.Empty(t, a)
-		require.Empty(t, b)
+		err := cl.SetPassword(user.DN, "ZXCVqwwer!@#$1234")
 		require.NoError(t, err)
 	})
 }

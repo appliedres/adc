@@ -5,6 +5,7 @@ go 1.21.1
 require (
 	github.com/go-ldap/ldap/v3 v3.4.8
 	github.com/stretchr/testify v1.9.0
+	golang.org/x/text v0.18.0
 )
 
 require (

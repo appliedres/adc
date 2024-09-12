@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
+	"golang.org/x/text/encoding/unicode"
 )
 
 // Active Direcotry client.
@@ -166,15 +167,16 @@ func (cl *Client) modifyRequest(req *ldap.ModifyRequest) error {
 	return err
 }
 
-func (cl *Client) modifyPassword(req *ldap.PasswordModifyRequest) (string, string, error) {
-	r, err := cl.ldap.PasswordModify(req)
-	if err != nil {
-		return "", "", err
-	}
-	if r == nil {
-		return "", "", nil
-	}
-	return r.GeneratedPassword, r.Referral, nil
+func (cl *Client) modifyPassword(userDN string, pwd string) error {
+	utf16 := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
+	// According to the MS docs in the links above
+	// The password needs to be enclosed in quotes
+	quoted := fmt.Sprintf("\"%v\"", pwd)
+	pwdEncoded, _ := utf16.NewEncoder().String(quoted)
+	passwordModify := ldap.NewModifyRequest(userDN, nil)
+	passwordModify.Replace("unicodePwd", []string{pwdEncoded})
+
+	return cl.ldap.Modify(passwordModify)
 }
 
 // SearchEntries Perfroms search for ldap entries.
