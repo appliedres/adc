@@ -166,6 +166,17 @@ func (cl *Client) modifyRequest(req *ldap.ModifyRequest) error {
 	return err
 }
 
+func (cl *Client) modifyPassword(req *ldap.PasswordModifyRequest) (string, string, error) {
+	r, err := cl.ldap.PasswordModify(req)
+	if err != nil {
+		return "", "", err
+	}
+	if r == nil {
+		return "", "", nil
+	}
+	return r.GeneratedPassword, r.Referral, nil
+}
+
 // SearchEntries Perfroms search for ldap entries.
 func (cl *Client) searchEntries(req *ldap.SearchRequest) ([]*ldap.Entry, error) {
 	result, err := cl.ldap.Search(req)

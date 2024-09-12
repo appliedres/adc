@@ -161,6 +161,14 @@ func (cl *Client) DeleteUser(dn string) error {
 	return cl.deleteRequest(delReq)
 }
 
+func (cl *Client) SetPassword(dn string, oldPassword string, newPassword string) (string, string, error) {
+	return cl.modifyPassword(&ldap.PasswordModifyRequest{
+		UserIdentity: dn,
+		OldPassword:  oldPassword,
+		NewPassword:  newPassword,
+	})
+}
+
 func (cl *Client) UpdateUser(dn string, userAttrs []ldap.Attribute) error {
 	modReq := ldap.NewModifyRequest(dn, []ldap.Control{})
 	for _, a := range userAttrs {
