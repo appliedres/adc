@@ -161,8 +161,12 @@ func (cl *Client) DeleteUser(dn string) error {
 	return cl.deleteRequest(delReq)
 }
 
-func (cl *Client) SetPassword(dn string, newPassword string) error {
-	return cl.modifyPassword(dn, newPassword)
+func (cl *Client) SetPassword(dn string, newPassword string, mustChange bool) error {
+	err := cl.modifyPassword(dn, newPassword)
+	if err != nil {
+		return err
+	}
+	return cl.updateAttribute(dn, "pwdLastSet", []string{"0"})
 }
 
 func (cl *Client) UpdateUser(dn string, userAttrs []ldap.Attribute) error {
