@@ -166,6 +166,9 @@ func (cl *Client) SetPassword(dn string, newPassword string, mustChange bool) er
 	if err != nil {
 		return err
 	}
+	if !mustChange {
+		return nil
+	}
 	return cl.updateAttribute(dn, "pwdLastSet", []string{"0"})
 }
 
