@@ -162,12 +162,11 @@ func (cl *Client) DeleteGroup(dn string) error {
 	return cl.deleteRequest(delReq)
 }
 
-func (cl *Client) UpdateGroup(grp Group, groupAttrs []ldap.Attribute) error {
-	modReq := ldap.NewModifyRequest(grp.DN, []ldap.Control{})
-	for _, a := range groupAttrs {
-		modReq.Replace(a.Type, a.Vals)
-	}
-	return cl.modifyRequest(modReq)
+func (cl *Client) RenameGroup(dn string, rdn string) error {
+	modReq := ldap.NewModifyDNRequest(dn, rdn, true, "")
+	modReq.Controls = []ldap.Control{}
+
+	return cl.ldap.ModifyDN(modReq)
 }
 
 func (cl *Client) getGroupMembers(dn string) ([]GroupMember, error) {
