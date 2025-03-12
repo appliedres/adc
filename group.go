@@ -110,7 +110,7 @@ func (cl *Client) GetGroup(args GetGroupArgs) (*Group, error) {
 	return result, nil
 }
 
-func (cl *Client) ListGroups(args GetGroupArgs, filter string) (*[]Group, error) {
+func (cl *Client) ListGroups(args GetGroupArgs, pageSize int, filter string) (*[]Group, error) {
 	req := &ldap.SearchRequest{
 		BaseDN:       cl.Config.Groups.SearchBase,
 		Scope:        ldap.ScopeWholeSubtree,
@@ -126,10 +126,35 @@ func (cl *Client) ListGroups(args GetGroupArgs, filter string) (*[]Group, error)
 		req.Filter = filter
 	}
 
-	entries, err := cl.searchEntries(req)
-	if err != nil {
-		return nil, err
+	control := ldap.NewControlPaging(uint32(pageSize))
+	var entries []*ldap.Entry
+
+	for {
+		req.Controls = []ldap.Control{control}
+
+		sr, err := cl.ldap.Search(req)
+		if err != nil {
+			return nil, err
+		}
+
+		entries = append(entries, sr.Entries...)
+
+		if sr.Controls == nil {
+			break
+		}
+
+		pagingControl, ok := sr.Controls[0].(*ldap.ControlPaging)
+		if !ok {
+			break
+		}
+
+		if len(pagingControl.Cookie) == 0 {
+			break
+		}
+
+		control.SetCookie(pagingControl.Cookie)
 	}
+
 	if entries == nil {
 		return nil, nil
 	}
