@@ -54,7 +54,7 @@ func (args GetUserArgs) Validate() error {
 	return nil
 }
 
-func (cl *Client) ListUsers(args GetUserArgs, filter string) (*[]User, error) {
+func (cl *Client) ListUsers(args GetUserArgs, pageSize int, filter string) (*[]User, error) {
 	req := &ldap.SearchRequest{
 		BaseDN:       cl.Config.Users.SearchBase,
 		Scope:        ldap.ScopeWholeSubtree,
@@ -70,10 +70,35 @@ func (cl *Client) ListUsers(args GetUserArgs, filter string) (*[]User, error) {
 		req.Filter = filter
 	}
 
-	entries, err := cl.searchEntries(req)
-	if err != nil {
-		return nil, err
+	control := ldap.NewControlPaging(uint32(pageSize))
+	var entries []*ldap.Entry
+
+	for {
+		req.Controls = []ldap.Control{control}
+
+		sr, err := cl.ldap.Search(req)
+		if err != nil {
+			return nil, err
+		}
+
+		entries = append(entries, sr.Entries...)
+
+		if sr.Controls == nil {
+			break
+		}
+
+		pagingControl, ok := sr.Controls[0].(*ldap.ControlPaging)
+		if !ok {
+			break
+		}
+
+		if len(pagingControl.Cookie) == 0 {
+			break
+		}
+
+		control.SetCookie(pagingControl.Cookie)
 	}
+
 	if entries == nil {
 		return nil, nil
 	}
