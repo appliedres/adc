@@ -20,6 +20,11 @@ type mockClient struct {
 	entries map[string]*ldap.Entry
 }
 
+// Extended implements ldap.Client.
+func (cl *mockClient) Extended(*ldap.ExtendedRequest) (*ldap.ExtendedResponse, error) {
+	panic("unimplemented")
+}
+
 // Initializes new mock client.
 func newMockClient(cfg *Config, opts ...Option) *Client {
 	cl := New(cfg, opts...)
